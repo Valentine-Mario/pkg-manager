@@ -1,0 +1,18 @@
+{
+  "name": "pkg_manager",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "ts-node index.ts"
+  },
+  "description": "a simple js package manager",
+  "main": "index.js",
+  "author": "Valentine Oragbakosi",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^17.0.31",
+    "typescript": "^4.6.4"
+  },
+  "dependencies": {
+    "@iarna/toml": "^2.2.5"
+  }
+}
