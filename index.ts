@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 import { readFile, parseToml } from "./lib";
-import { getLatestVersion, getDepAndDevDep, getNestedDep } from "./api";
+import { getLatestVersion, getImmedteDep, getNestedDep } from "./api";
 import { JsonMap } from "@iarna/toml";
 
 const main = async () => {
@@ -35,7 +35,7 @@ const main = async () => {
       }
       Object.entries(cmd_map).forEach(
         async([dependecy, version]) => {
-          const b=await getDepAndDevDep(dependecy, version as string)
+          const b=await getImmedteDep(dependecy, version as string)
           Object.entries(b).forEach(
             async([dep, ver])=>{
               const a= await getNestedDep(dep, ver as string)

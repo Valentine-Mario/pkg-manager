@@ -14,7 +14,7 @@ export const getLatestVersion = async (
 };
 
 //get dependecies and dev dependencies of packages in our toml comnfig
-export const getDepAndDevDep = async (
+export const getImmedteDep = async (
   dependecy: string,
   version: string
 ): Promise<{}> => {
@@ -24,9 +24,7 @@ export const getDepAndDevDep = async (
     );
     //get immediate dependencies of the dependecy
     const related_dep = data["dependencies"];
-    const related_dev_dep = data["devDependencies"];
-    const all_related_dep = { ...related_dep, ...related_dev_dep };
-    return all_related_dep;
+    return related_dep;
   } catch (err) {
     throw err;
   }
@@ -38,31 +36,31 @@ export const getNestedDep = async (
 ): Promise<{}> => {
   try {
     const { data } = await axios.get(
-      `https://registry.npmjs.org/${dependecy}/${version}`
+      `https://registry.npmjs.org/${dependecy}/${version
+        .replaceAll("~", "")
+        .replaceAll("^", "")
+        .replaceAll("*", "")
+        .replaceAll(">", "")
+        .replaceAll("=", "")
+        .replaceAll("x", "")
+        .trim()
+    }`
     );
 
     let all_dependecies = {};
     const related_dep = data["dependencies"];
-    const related_dev_dep = data["devDependencies"];
-    const all_related_dep = { ...related_dep, ...related_dev_dep };
+    const all_related_dep = { ...related_dep };
 
     //if there are nested dependecies, recursively call the function
     if (Object.values(all_related_dep).length > 0) {
       //append to the dep map
       Object.entries(all_related_dep).forEach(([dependecy, version]) => {
         all_dependecies[dependecy] = version;
-        return getNestedDep(
-          dependecy,
-          (version as string).replaceAll(
-            "~",
-            "".replaceAll("^", "")
-            .replaceAll("*", "")
-          )
-        );
+        return getNestedDep(dependecy, version as string);
       });
     }
     return all_dependecies;
   } catch (err) {
-    throw err;
+    console.log(err)
   }
 };
