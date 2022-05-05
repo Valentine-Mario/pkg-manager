@@ -42,7 +42,6 @@ export const getNestedDep = async (
         .replaceAll("*", "")
         .replaceAll(">", "")
         .replaceAll("=", "")
-        .replaceAll("x", "")
         .trim()
     }`
     );
