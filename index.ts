@@ -20,11 +20,15 @@ const main = async () => {
       //read arg from command line
       //get the lasyt n elem in the array, removing the first 2
       const dependecy_list = process.argv.slice(3);
+      const latest_list = [];
 
       for (let i of dependecy_list) {
-        cmd_map[i] = await getLatestVersion(i);
+        latest_list.push(getLatestVersion(i));
       }
-
+      const resolved_list = await Promise.all(latest_list);
+      for (let item of resolved_list) {
+        cmd_map[item[0]] = item[1];
+      }
       console.log(cmd_map);
     }
   } else {
