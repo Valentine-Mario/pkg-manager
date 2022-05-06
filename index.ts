@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 import { readFile, parseToml } from "./lib";
-import { getLatestVersion, getImmedteDep, getNestedDep } from "./api";
+import { getLatestVersion, getImmedteDep, getNestedDep, unZip } from "./api";
 import { JsonMap } from "@iarna/toml";
 
 const main = async () => {
@@ -22,7 +22,7 @@ const main = async () => {
       let cmd_map: JsonMap = {};
 
       //read arg from command line
-      //get the lasyt n elem in the array, removing the first 2
+      //get the last n elem in the array, removing the first 2
       const dependecy_list = process.argv.slice(3);
       const latest_list = [];
 
@@ -50,4 +50,5 @@ const main = async () => {
   }
 };
 
-main();
+// main();
+unZip()

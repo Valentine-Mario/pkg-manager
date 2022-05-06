@@ -1,5 +1,6 @@
-import { JsonMap } from "@iarna/toml";
 import axios from "axios";
+import * as fs from "fs";
+import * as decompress from "decompress"
 
 //get latest dependecy version
 export const getLatestVersion = async (
@@ -42,8 +43,7 @@ export const getNestedDep = async (
         .replaceAll("*", "")
         .replaceAll(">", "")
         .replaceAll("=", "")
-        .trim()
-    }`
+        .trim()}`
     );
 
     let all_dependecies = {};
@@ -60,6 +60,44 @@ export const getNestedDep = async (
     }
     return all_dependecies;
   } catch (err) {
-    console.log(err)
+    console.error(err);
   }
 };
+
+export const getTarballLinkAndName = async (
+  dependecy: string,
+  version: string
+): Promise<string[]> => {
+  try {
+    const { data } = await axios.get(
+      `https://registry.npmjs.org/${dependecy}/${version}`
+    );
+    const download_link = data["dist"]["tarball"];
+    const name = data["name"];
+    return [download_link, name];
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const downloadZip = async (link: string[]) => {
+  try {
+    if (!fs.existsSync("./node_modules")) {
+      fs.mkdirSync("node_modules");
+    }
+    const { data } = await axios.get(link[0], { responseType: "blob" });
+    //write blob to file
+    fs.writeFile(`./node_modules/${link[1]}`, data, (err) => {
+      if (err) console.log(err);
+      console.log(`${link[1]} downloaded successfully`);
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const unZip=async()=>{
+  decompress('app.tgz', 'node_modules/express').then(files => {
+    console.log('done!', files);
+});
+}
