@@ -1,7 +1,8 @@
 #!/usr/bin/env ts-node
 import { readFile, parseToml } from "./lib";
-import { getLatestVersion, getImmedteDep, getNestedDep, unZip } from "./api";
+import { getLatestVersion, getImmedteDep, getNestedDep } from "./api";
 import { JsonMap } from "@iarna/toml";
+import { copySync } from "fs-extra";
 
 const main = async () => {
   //if arg is passed, read arg from cmd else read toml file
@@ -51,4 +52,4 @@ const main = async () => {
 };
 
 // main();
-unZip()
+copySync("./app/package", "./app")

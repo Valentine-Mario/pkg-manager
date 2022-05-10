@@ -1,5 +1,8 @@
 import * as fs from "fs";
 import { JsonMap, parse, stringify } from "@iarna/toml";
+import {parse as urlParser} from "url";
+import {basename} from "path"
+
 
 export const readFile = (path: string): Promise<string> => {
   return new Promise((res, rej) => {
@@ -37,3 +40,8 @@ export const parseToml = (payload: string): JsonMap => {
   const obj = parse(payload);
   return obj;
 };
+
+export const getFileName=(path:string):string=>{
+  var parsed = urlParser(path);
+  return basename(parsed.pathname);
+}

@@ -1,6 +1,8 @@
 import axios from "axios";
 import * as fs from "fs";
-import * as decompress from "decompress"
+import * as decompress from "decompress";
+import { getFileName } from "./lib";
+import { copySync } from "fs-extra";
 
 //get latest dependecy version
 export const getLatestVersion = async (
@@ -80,24 +82,38 @@ export const getTarballLinkAndName = async (
   }
 };
 
-export const downloadZip = async (link: string[]) => {
+export const downloadAndunZip = async (link: string[]) => {
   try {
     if (!fs.existsSync("./node_modules")) {
       fs.mkdirSync("node_modules");
     }
     const { data } = await axios.get(link[0], { responseType: "blob" });
+    //extract filename and write to location
+    const fileName = getFileName(link[0]);
+    const module_location = `./node_modules/${fileName}`;
     //write blob to file
-    fs.writeFile(`./node_modules/${link[1]}`, data, (err) => {
-      if (err) console.log(err);
-      console.log(`${link[1]} downloaded successfully`);
+    fs.writeFile(module_location, data, (err) => {
+      if (err) {
+        console.error(err);
+      } else {
+        //extract zip and copy to right location
+        unZip(module_location, `node_modules/${link[1]}`);
+        console.log(`${link[1]} downloaded successfully`);
+      }
     });
   } catch (err) {
     console.log(err);
   }
 };
 
-export const unZip=async()=>{
-  decompress('app.tgz', 'node_modules/express').then(files => {
-    console.log('done!', files);
-});
-}
+const unZip = async (module_location: string, newWrite: string) => {
+  decompress(module_location, newWrite).then((files) => {
+    moveFolder(module_location, newWrite);
+  });
+};
+
+const moveFolder = (src: string, des: string) => {
+  copySync(src, des);
+  //delete everuything on the package folder
+  fs.rmdirSync(src, { recursive: true });
+};
