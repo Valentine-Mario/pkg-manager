@@ -1,8 +1,9 @@
 import axios from "axios";
 import * as fs from "fs";
+import * as https from "https";
 import * as decompress from "decompress";
 import { getFileName } from "./lib";
-import { copySync } from "fs-extra";
+import { copySync, remove, removeSync } from "fs-extra";
 
 //get latest dependecy version
 export const getLatestVersion = async (
@@ -76,7 +77,7 @@ export const getTarballLinkAndName = async (
     );
     const download_link = data["dist"]["tarball"];
     const name = data["name"];
-    downloadAndunZip([download_link, name]);
+    await downloadAndunZip([download_link, name]);
   } catch (err) {
     console.error(err);
   }
@@ -87,18 +88,18 @@ const downloadAndunZip = async (link: string[]) => {
     if (!fs.existsSync("./node_modules")) {
       fs.mkdirSync("node_modules");
     }
-    const { data } = await axios.get(link[0], { responseType: "blob" });
-    //extract filename and write to location
     const fileName = getFileName(link[0]);
+
     const module_location = `./node_modules/${fileName}`;
-    //write blob to file
-    fs.writeFile(module_location, data, (err) => {
-      if (err) {
-        console.error(err);
-      } else {
+
+    const file = fs.createWriteStream(module_location);
+    const request = https.get(link[0], function (response) {
+      response.pipe(file);
+      file.on("finish", async () => {
         //extract zip and copy to right location
-        unZip(module_location, `node_modules/${link[1]}`);
-      }
+        file.close();
+        await unZip(module_location, `./node_modules/${link[1]}`);
+      });
     });
   } catch (err) {
     console.log(err);
@@ -106,15 +107,21 @@ const downloadAndunZip = async (link: string[]) => {
 };
 
 const unZip = async (module_location: string, newWrite: string) => {
-  decompress(module_location, newWrite).then((_files) => {
-    moveFolder(module_location, newWrite);
-  });
+  decompress(module_location, newWrite)
+    .then((_files) => {
+      moveFolder(`${newWrite}/package`, newWrite, module_location);
+    })
+    .catch((err) => {
+      if (err) console.log(err);
+    });
 };
 
-const moveFolder = (src: string, des: string) => {
+const moveFolder = (src: string, des: string, original:string) => {
   copySync(src, des);
   //delete everuything on the package folder
-  fs.rmdirSync(src, { recursive: true });
+  removeSync(src);
+  //delete the tarball
+  removeSync(original)
 };
 
 const getVersion = async (

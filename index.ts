@@ -8,6 +8,7 @@ import {
 } from "./api";
 import { JsonMap } from "@iarna/toml";
 import { copySync } from "fs-extra";
+import decompress = require("decompress");
 
 const main = async () => {
   //if arg is passed, read arg from cmd else read toml file
@@ -42,6 +43,7 @@ const main = async () => {
       }
 
       for (let cli_dep in cmd_map) {
+        console.log("getting depenency list...");
         aggregated_dep[cli_dep] = cmd_map[cli_dep];
         const immediteDep = await getImmedteDep(
           cli_dep,
@@ -58,7 +60,14 @@ const main = async () => {
           }
         }
       }
-      console.log(aggregated_dep);
+      const download_list = [];
+      for (let item in aggregated_dep) {
+        download_list.push(
+          await getTarballLinkAndName(item, aggregated_dep[item] as string)
+        );
+      }
+      await Promise.all(download_list);
+      console.log("download successful");
     }
   } else {
     console.error("invalid operation");
