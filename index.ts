@@ -63,7 +63,7 @@ const main = async () => {
       const download_list = [];
       for (let item in aggregated_dep) {
         download_list.push(
-          await getTarballLinkAndName(item, aggregated_dep[item] as string)
+         getTarballLinkAndName(item, aggregated_dep[item] as string)
         );
       }
       await Promise.all(download_list);

@@ -3,14 +3,17 @@ import * as fs from "fs";
 import * as https from "https";
 import * as decompress from "decompress";
 import { getFileName } from "./lib";
-import { copySync, remove, removeSync } from "fs-extra";
+import { copySync, removeSync } from "fs-extra";
+
+const dir_name = "node_modules";
+const base_url = "https://registry.npmjs.org";
 
 //get latest dependecy version
 export const getLatestVersion = async (
   dependecy: string
 ): Promise<string[]> => {
   try {
-    const { data } = await axios.get(`https://registry.npmjs.org/${dependecy}`);
+    const { data } = await axios.get(`${base_url}/${dependecy}`);
     return [dependecy, data["dist-tags"]["latest"]];
   } catch (err) {
     throw err;
@@ -24,7 +27,7 @@ export const getImmedteDep = async (
 ): Promise<{}> => {
   try {
     const { data } = await axios.get(
-      `https://registry.npmjs.org/${dependecy}/${version}`
+      `${base_url}/${dependecy}/${await getVersion(dependecy, version)}`
     );
     //get immediate dependencies of the dependecy
     const related_dep = data["dependencies"];
@@ -40,10 +43,7 @@ export const getNestedDep = async (
 ): Promise<{}> => {
   try {
     const { data } = await axios.get(
-      `https://registry.npmjs.org/${dependecy}/${await getVersion(
-        dependecy,
-        version
-      )}`
+      `${base_url}/${dependecy}/${await getVersion(dependecy, version)}`
     );
 
     let all_dependecies = {};
@@ -70,10 +70,7 @@ export const getTarballLinkAndName = async (
 ) => {
   try {
     const { data } = await axios.get(
-      `https://registry.npmjs.org/${dependecy}/${await getVersion(
-        dependecy,
-        version
-      )}`
+      `${base_url}/${dependecy}/${await getVersion(dependecy, version)}`
     );
     const download_link = data["dist"]["tarball"];
     const name = data["name"];
@@ -85,12 +82,12 @@ export const getTarballLinkAndName = async (
 
 const downloadAndunZip = async (link: string[]) => {
   try {
-    if (!fs.existsSync("./node_modules")) {
-      fs.mkdirSync("node_modules");
+    if (!fs.existsSync(`./${dir_name}`)) {
+      fs.mkdirSync(`${dir_name}`);
     }
     const fileName = getFileName(link[0]);
 
-    const module_location = `./node_modules/${fileName}`;
+    const module_location = `./${dir_name}/${fileName}`;
 
     const file = fs.createWriteStream(module_location);
     const request = https.get(link[0], function (response) {
@@ -98,7 +95,7 @@ const downloadAndunZip = async (link: string[]) => {
       file.on("finish", async () => {
         //extract zip and copy to right location
         file.close();
-        await unZip(module_location, `./node_modules/${link[1]}`);
+        await unZip(module_location, `./${dir_name}/${link[1]}`);
       });
     });
   } catch (err) {
@@ -116,12 +113,12 @@ const unZip = async (module_location: string, newWrite: string) => {
     });
 };
 
-const moveFolder = (src: string, des: string, original:string) => {
+const moveFolder = (src: string, des: string, original: string) => {
   copySync(src, des);
   //delete everuything on the package folder
   removeSync(src);
   //delete the tarball
-  removeSync(original)
+  removeSync(original);
 };
 
 const getVersion = async (
