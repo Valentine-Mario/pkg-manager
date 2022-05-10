@@ -39,13 +39,10 @@ export const getNestedDep = async (
 ): Promise<{}> => {
   try {
     const { data } = await axios.get(
-      `https://registry.npmjs.org/${dependecy}/${version
-        .replaceAll("~", "")
-        .replaceAll("^", "")
-        .replaceAll("*", "")
-        .replaceAll(">", "")
-        .replaceAll("=", "")
-        .trim()}`
+      `https://registry.npmjs.org/${dependecy}/${await getVersion(
+        dependecy,
+        version
+      )}`
     );
 
     let all_dependecies = {};
@@ -69,20 +66,23 @@ export const getNestedDep = async (
 export const getTarballLinkAndName = async (
   dependecy: string,
   version: string
-): Promise<string[]> => {
+) => {
   try {
     const { data } = await axios.get(
-      `https://registry.npmjs.org/${dependecy}/${version}`
+      `https://registry.npmjs.org/${dependecy}/${await getVersion(
+        dependecy,
+        version
+      )}`
     );
     const download_link = data["dist"]["tarball"];
     const name = data["name"];
-    return [download_link, name];
+    downloadAndunZip([download_link, name]);
   } catch (err) {
     console.error(err);
   }
 };
 
-export const downloadAndunZip = async (link: string[]) => {
+const downloadAndunZip = async (link: string[]) => {
   try {
     if (!fs.existsSync("./node_modules")) {
       fs.mkdirSync("node_modules");
@@ -98,7 +98,6 @@ export const downloadAndunZip = async (link: string[]) => {
       } else {
         //extract zip and copy to right location
         unZip(module_location, `node_modules/${link[1]}`);
-        console.log(`${link[1]} downloaded successfully`);
       }
     });
   } catch (err) {
@@ -107,7 +106,7 @@ export const downloadAndunZip = async (link: string[]) => {
 };
 
 const unZip = async (module_location: string, newWrite: string) => {
-  decompress(module_location, newWrite).then((files) => {
+  decompress(module_location, newWrite).then((_files) => {
     moveFolder(module_location, newWrite);
   });
 };
@@ -116,4 +115,22 @@ const moveFolder = (src: string, des: string) => {
   copySync(src, des);
   //delete everuything on the package folder
   fs.rmdirSync(src, { recursive: true });
+};
+
+const getVersion = async (
+  dependency: string,
+  version: string
+): Promise<string> => {
+  if (version.includes("*")) {
+    const ver = await getLatestVersion(dependency);
+    return ver[1];
+  } else {
+    return version
+      .replaceAll("~", "")
+      .replaceAll("^", "")
+      .replaceAll("*", "")
+      .replaceAll(">", "")
+      .replaceAll("=", "")
+      .trim();
+  }
 };
