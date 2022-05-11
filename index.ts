@@ -24,10 +24,10 @@ const main = async () => {
       const dev_dependency_list = obj["devDependncies"] as object;
       //merge both dep and devDep
       const all_dependencies = { ...dependency_list, ...dev_dependency_list };
+      install(all_dependencies);
     } else {
       //craete an empty JSON map
       let cmd_map: JsonMap = {};
-      let aggregated_dep: JsonMap = {};
 
       //read arg from command line
       //get the last n elem in the array, removing the first 2
@@ -41,37 +41,41 @@ const main = async () => {
       for (let item of resolved_list) {
         cmd_map[item[0]] = item[1];
       }
-
-      for (let cli_dep in cmd_map) {
-        console.log("getting depenency list...");
-        aggregated_dep[cli_dep] = cmd_map[cli_dep];
-        const immediteDep = await getImmedteDep(
-          cli_dep,
-          cmd_map[cli_dep] as string
-        );
-        for (let immed_dep in immediteDep) {
-          aggregated_dep[immed_dep] = immediteDep[immed_dep];
-          const nestedDep = await getNestedDep(
-            immed_dep,
-            immediteDep[immed_dep] as string
-          );
-          for (let nested_dep in nestedDep) {
-            aggregated_dep[nested_dep] = nestedDep[nested_dep];
-          }
-        }
-      }
-      const download_list = [];
-      for (let item in aggregated_dep) {
-        download_list.push(
-         getTarballLinkAndName(item, aggregated_dep[item] as string)
-        );
-      }
-      await Promise.all(download_list);
-      console.log("download successful");
+      install(cmd_map);
     }
   } else {
     console.error("invalid operation");
   }
+};
+
+const install = async (depenecyMap: JsonMap) => {
+  let aggregated_dep: JsonMap = {};
+
+  for (let cli_dep in depenecyMap) {
+    console.log("getting depenency list...");
+    aggregated_dep[cli_dep] = depenecyMap[cli_dep];
+    const immediteDep = await getImmedteDep(
+      cli_dep,
+      depenecyMap[cli_dep] as string
+    );
+    for (let immed_dep in immediteDep) {
+      aggregated_dep[immed_dep] = immediteDep[immed_dep];
+      const nestedDep = await getNestedDep(
+        immed_dep,
+        immediteDep[immed_dep] as string
+      );
+      for (let nested_dep in nestedDep) {
+        aggregated_dep[nested_dep] = nestedDep[nested_dep];
+      }
+    }
+  }
+  const download_list = [];
+  for (let item in aggregated_dep) {
+    download_list.push(
+      getTarballLinkAndName(item, aggregated_dep[item] as string)
+    );
+  }
+  await Promise.all(download_list);
 };
 
 main();

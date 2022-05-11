@@ -67,6 +67,7 @@ export const getTarballLinkAndName = async (
   version: string
 ) => {
   try {
+    console.log(`downloading ${dependecy} dependencies...`)
     const { data } = await axios.get(
       `${base_url}/${dependecy}/${await getVersion(dependecy, version)}`
     );
@@ -80,6 +81,7 @@ export const getTarballLinkAndName = async (
 
 const downloadAndunZip = async (link: string[]) => {
   try {
+    console.log(`Extracting ${link[1]}`)
     if (!fs.existsSync(`./${dir_name}`)) {
       fs.mkdirSync(`${dir_name}`);
     }
