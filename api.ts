@@ -1,9 +1,7 @@
 import axios from "axios";
 import * as fs from "fs";
 import * as https from "https";
-import * as decompress from "decompress";
-import { getFileName } from "./lib";
-import { copySync, removeSync } from "fs-extra";
+import { getFileName, unZip } from "./lib";
 
 const dir_name = "node_modules";
 const base_url = "https://registry.npmjs.org";
@@ -103,23 +101,7 @@ const downloadAndunZip = async (link: string[]) => {
   }
 };
 
-const unZip = async (module_location: string, newWrite: string) => {
-  decompress(module_location, newWrite)
-    .then((_files) => {
-      moveFolder(`${newWrite}/package`, newWrite, module_location);
-    })
-    .catch((err) => {
-      if (err) console.log(err);
-    });
-};
 
-const moveFolder = (src: string, des: string, original: string) => {
-  copySync(src, des);
-  //delete everuything on the package folder
-  removeSync(src);
-  //delete the tarball
-  removeSync(original);
-};
 
 const getVersion = async (
   dependency: string,
@@ -135,6 +117,7 @@ const getVersion = async (
       .replaceAll("*", "")
       .replaceAll(">", "")
       .replaceAll("=", "")
+      .replaceAll("^", "")
       .trim();
   }
 };
