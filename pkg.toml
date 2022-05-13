@@ -7,6 +7,9 @@ start = "ts-node index.ts i"
 express = "4.17.1"
 mongodb = "4.0.0"
 imagizer-javascript = "1.9.1"
+core = "1.0.113"
+fs-extra = "10.1.0"
+json-file = "0.1.0"
 
 [devDependncies]
 typescript = "4.6.4"

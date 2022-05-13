@@ -13,6 +13,7 @@ import {
   getTarballLinkAndName,
 } from "./api";
 import { JsonMap } from "@iarna/toml";
+import * as fs from "fs";
 
 const main = async () => {
   try {
@@ -71,25 +72,34 @@ const main = async () => {
 
 const install = async (depenecyMap: JsonMap) => {
   let aggregated_dep: JsonMap = {};
+  let dependecy_graph: JsonMap = {};
 
   for (let cli_dep in depenecyMap) {
     console.log("getting depenency list...");
+
     aggregated_dep[cli_dep] = depenecyMap[cli_dep];
+    dependecy_graph[cli_dep] = {};
+    dependecy_graph[cli_dep][cli_dep] = depenecyMap[cli_dep];
+
     const immediteDep = await getImmedteDep(
       cli_dep,
       depenecyMap[cli_dep] as string
     );
     for (let immed_dep in immediteDep) {
       aggregated_dep[immed_dep] = immediteDep[immed_dep];
+      dependecy_graph[cli_dep][immed_dep] = immediteDep[immed_dep];
+
       const nestedDep = await getNestedDep(
         immed_dep,
         immediteDep[immed_dep] as string
       );
       for (let nested_dep in nestedDep) {
         aggregated_dep[nested_dep] = nestedDep[nested_dep];
+        dependecy_graph[cli_dep][nested_dep] = nested_dep[nested_dep];
       }
     }
   }
+
   const download_list = [];
   for (let item in aggregated_dep) {
     download_list.push(
@@ -97,6 +107,16 @@ const install = async (depenecyMap: JsonMap) => {
     );
   }
   await Promise.all(download_list);
+
+  if (!fs.existsSync(`./pkg.lock.toml`)) {
+    let toml_str = stringifyObj(dependecy_graph);
+    writeFile("./pkg.lock.toml", toml_str);
+  } else {
+    const toml_data = await readFile("./pkg.lock.toml");
+    const obj = parseToml(toml_data);
+    let toml_str = stringifyObj({ ...dependecy_graph, ...obj });
+    writeFile("./pkg.lock.toml", toml_str);
+  }
 };
 
 main();

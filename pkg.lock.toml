@@ -1,0 +1,11 @@
+[json-file]
+json-file = "0.1.0"
+
+[fs-extra]
+fs-extra = "10.1.0"
+jsonfile = "^6.0.1"
+universalify = "^2.0.0"
+
+[imagizer-javascript]
+imagizer-javascript = "1.9.1"
+python-shell = "^1.0.8"

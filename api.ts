@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as https from "https";
 import { getFileName, unZip } from "./lib";
 
-const dir_name = "node_modules";
+const dir_name = "node_modulesc";
 const base_url = "https://registry.npmjs.org";
 
 //get latest dependecy version
