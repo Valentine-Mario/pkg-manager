@@ -5,6 +5,7 @@ import { basename } from "path";
 import * as decompress from "decompress";
 import { copySync, removeSync } from "fs-extra";
 import { spawn } from "child_process";
+import { dir_name } from "./api";
 
 export const readFile = (path: string): Promise<string> => {
   return new Promise((res, rej) => {
@@ -72,7 +73,7 @@ const moveFolder = (src: string, des: string): void => {
 
 export const execScript = (command: string): void => {
   //parse the commad
-  let cmd=command.split(" ")
+  let cmd = command.split(" ");
   const child = spawn(cmd[0], cmd.slice(1));
   let ScriptOutput = "";
 
@@ -87,4 +88,42 @@ export const execScript = (command: string): void => {
       console.log(`exited with status ${code}`);
     }
   });
+};
+
+export const deleteDep = async (payload: JsonMap, delete_item: string[]) => {
+  for (let item of delete_item) {
+    let dep = payload[item] as JsonMap;
+    delete payload[item];
+    if (dep) {
+      let check = false;
+      //check if a dependecy sub dependecy relies on this
+      for (let sub_dep in payload) {
+        if (payload[sub_dep][item]) {
+          check = true;
+        }
+      }
+      if (check === false) {
+        removeSync(`./${dir_name}/${item}`);
+        console.log(`deleting ${item} from depency list`);
+      }
+      //update config file
+      const toml_data = await readFile("./pkg.toml");
+      const obj = parseToml(toml_data);
+      if (obj["dependencies"][item]) {
+        delete obj["dependencies"][item];
+      } else {
+        delete obj["devDependncies"][item];
+      }
+
+      let toml_config_str = stringifyObj(obj);
+      writeFile("./pkg.toml", toml_config_str);
+
+      //update the lock file
+      let toml_str = stringifyObj(payload);
+      writeFile("./pkg.lock.toml", toml_str);
+    } else {
+      console.error(`parent dependecy ${item} not found`);
+    }
+  }
+  // console.log(payload, delete_item);
 };

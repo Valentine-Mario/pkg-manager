@@ -1,15 +1,12 @@
+[dependencies]
+fs-extra = "10.1.0"
+core = "1.0.113"
+mongodb = "4.6.0"
+
 [scripts]
 build = "node build.js"
 test = "node test.js"
 start = "ts-node index.ts i"
-
-[dependencies]
-express = "4.17.1"
-mongodb = "4.0.0"
-imagizer-javascript = "1.9.1"
-core = "1.0.113"
-fs-extra = "10.1.0"
-json-file = "0.1.0"
 
 [devDependncies]
 typescript = "4.6.4"

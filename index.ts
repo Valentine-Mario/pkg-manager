@@ -5,6 +5,7 @@ import {
   execScript,
   stringifyObj,
   writeFile,
+  deleteDep,
 } from "./lib";
 import {
   getLatestVersion,
@@ -62,6 +63,15 @@ const main = async () => {
         const script = obj["scripts"];
         execScript(script[process.argv[3]]);
       }
+    } else if (process.argv[2] === "delete" || process.argv[2] === "d") {
+      if (process.argv.length < 4) {
+        console.error("invalid delete arg supplied");
+      } else {
+        //get scripts
+        const toml_lock_data = await readFile("./pkg.lock.toml");
+        const obj = parseToml(toml_lock_data);
+        deleteDep(obj, process.argv.slice(3));
+      }
     } else {
       console.error("invalid operation");
     }
@@ -71,13 +81,11 @@ const main = async () => {
 };
 
 const install = async (depenecyMap: JsonMap) => {
-  let aggregated_dep: JsonMap = {};
   let dependecy_graph: JsonMap = {};
 
   for (let cli_dep in depenecyMap) {
-    console.log("getting depenency list...");
+    console.log("getting dependency list...");
 
-    aggregated_dep[cli_dep] = depenecyMap[cli_dep];
     dependecy_graph[cli_dep] = {};
     dependecy_graph[cli_dep][cli_dep] = depenecyMap[cli_dep];
 
@@ -86,7 +94,6 @@ const install = async (depenecyMap: JsonMap) => {
       depenecyMap[cli_dep] as string
     );
     for (let immed_dep in immediteDep) {
-      aggregated_dep[immed_dep] = immediteDep[immed_dep];
       dependecy_graph[cli_dep][immed_dep] = immediteDep[immed_dep];
 
       const nestedDep = await getNestedDep(
@@ -94,18 +101,19 @@ const install = async (depenecyMap: JsonMap) => {
         immediteDep[immed_dep] as string
       );
       for (let nested_dep in nestedDep) {
-        aggregated_dep[nested_dep] = nestedDep[nested_dep];
-        dependecy_graph[cli_dep][nested_dep] = nested_dep[nested_dep];
+        dependecy_graph[cli_dep][nested_dep] = nestedDep[nested_dep];
       }
     }
   }
-
   const download_list = [];
-  for (let item in aggregated_dep) {
-    download_list.push(
-      getTarballLinkAndName(item, aggregated_dep[item] as string)
-    );
+
+  for (let j in dependecy_graph) {
+    let map_obj = dependecy_graph[j] as JsonMap;
+    for (let i in map_obj) {
+      download_list.push(getTarballLinkAndName(i, map_obj[i] as string));
+    }
   }
+
   await Promise.all(download_list);
 
   if (!fs.existsSync(`./pkg.lock.toml`)) {
