@@ -120,6 +120,7 @@ const getVersion = async (
       .replaceAll(">", "")
       .replaceAll("=", "")
       .replaceAll("^", "")
+      .replaceAll("<", "")
       .trim();
   }
 };

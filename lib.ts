@@ -4,6 +4,7 @@ import { parse as urlParser } from "url";
 import { basename } from "path";
 import * as decompress from "decompress";
 import { copySync, removeSync } from "fs-extra";
+import { spawn } from "child_process";
 
 export const readFile = (path: string): Promise<string> => {
   return new Promise((res, rej) => {
@@ -59,7 +60,7 @@ export const unZip = async (module_location: string, newWrite: string) => {
     });
 };
 
-const moveFolder = (src: string, des: string) => {
+const moveFolder = (src: string, des: string): void => {
   try {
     copySync(src, des);
     //delete everything on the package folder
@@ -67,4 +68,23 @@ const moveFolder = (src: string, des: string) => {
   } catch (e) {
     console.log("error enconutered");
   }
+};
+
+export const execScript = (command: string): void => {
+  //parse the commad
+  let cmd=command.split(" ")
+  const child = spawn(cmd[0], cmd.slice(1));
+  let ScriptOutput = "";
+
+  child.stdout.setEncoding("utf8");
+  child.stdout.on("data", (data) => {
+    console.log(data);
+    data = data.toString();
+    ScriptOutput += data;
+  });
+  child.on("close", (code) => {
+    if (code !== 0) {
+      console.log(`exited with status ${code}`);
+    }
+  });
 };
