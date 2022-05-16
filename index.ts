@@ -99,7 +99,6 @@ const install = async (depenecyMap: JsonMap) => {
         immed_dep,
         immediteDep[immed_dep] as string
       );
-      console.log(nestedDep)
       for (let nested_dep in nestedDep) {
         dependecy_graph[cli_dep][nested_dep] = nestedDep[nested_dep];
       }
@@ -113,7 +112,6 @@ const install = async (depenecyMap: JsonMap) => {
       download_list.push(getTarballLinkAndName(i, map_obj[i] as string));
     }
   }
-
   await Promise.all(download_list);
 
   if (!fs.existsSync(`./pkg.lock.toml`)) {
