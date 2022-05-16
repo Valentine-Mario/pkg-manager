@@ -95,11 +95,11 @@ const install = async (depenecyMap: JsonMap) => {
     );
     for (let immed_dep in immediteDep) {
       dependecy_graph[cli_dep][immed_dep] = immediteDep[immed_dep];
-
       const nestedDep = await getNestedDep(
         immed_dep,
         immediteDep[immed_dep] as string
       );
+      console.log(nestedDep)
       for (let nested_dep in nestedDep) {
         dependecy_graph[cli_dep][nested_dep] = nestedDep[nested_dep];
       }

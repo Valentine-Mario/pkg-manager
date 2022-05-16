@@ -51,11 +51,15 @@ export const getNestedDep = async (
     //if there are nested dependecies, recursively call the function
     if (Object.values(all_related_dep).length > 0) {
       //append to the dep map
-      Object.entries(all_related_dep).forEach(([dependecy, version]) => {
-        all_dependecies[dependecy] = version;
-        return getNestedDep(dependecy, version as string);
-      });
+      for (let item in all_related_dep) {
+        all_dependecies[item] = all_related_dep[item];
+        let v= await getNestedDep(item, all_related_dep[item] as string)
+        for(let a in v){
+          all_dependecies[a] = v[a];
+        }
+      }
     }
+
     return all_dependecies;
   } catch (err) {
     console.error(err);
@@ -67,7 +71,7 @@ export const getTarballLinkAndName = async (
   version: string
 ) => {
   try {
-    console.log(`downloading ${dependecy} dependencies...`)
+    console.log(`downloading ${dependecy} dependencies...`);
     const { data } = await axios.get(
       `${base_url}/${dependecy}/${await getVersion(dependecy, version)}`
     );
@@ -81,7 +85,7 @@ export const getTarballLinkAndName = async (
 
 const downloadAndunZip = async (link: string[]) => {
   try {
-    console.log(`Extracting ${link[1]}`)
+    console.log(`Extracting ${link[1]}`);
     if (!fs.existsSync(`./${dir_name}`)) {
       fs.mkdirSync(`${dir_name}`);
     }
@@ -102,8 +106,6 @@ const downloadAndunZip = async (link: string[]) => {
     console.log(err);
   }
 };
-
-
 
 const getVersion = async (
   dependency: string,
