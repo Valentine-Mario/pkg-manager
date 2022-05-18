@@ -25,15 +25,6 @@ export const writeFile = (path: string, content: string) => {
   });
 };
 
-export const appendDepToObj = (
-  key: string,
-  value: string,
-  payload: JsonMap
-): JsonMap => {
-  payload["dependencies"][key] = value;
-  return payload;
-};
-
 export const stringifyObj = (payload: JsonMap): string => {
   const str = stringify(payload);
   return str;
